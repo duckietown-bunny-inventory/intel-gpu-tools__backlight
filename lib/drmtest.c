@@ -39,6 +39,8 @@
 #include <getopt.h>
 #include <stdlib.h>
 
+#include "libemm64.h"
+
 #include "drmtest.h"
 #include "i915_drm.h"
 #include "intel_chipset.h"

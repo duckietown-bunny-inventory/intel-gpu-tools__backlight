@@ -1,0 +1,96 @@
+This is a collection of tools for development and testing of the Intel DRM
+driver.  There are many macro-level test suites that get used against our
+driver, including xtest, rendercheck, piglit, and oglconform, but failures
+from those can be difficult to track down to kernel changes, and many require
+complicated build procedures or specific testing environments to get useful
+results.
+
+Thus, intel-graphics-tools was a project I started to collect some low-level
+tools I intended to build.
+
+benchmarks/
+	This should be a collection of useful microbenchmarks.  The hope is
+	that people can use these to tune some pieces of DRM code in relevant
+	ways.
+
+	The benchmarks require KMS to be enabled.  When run with an X Server
+	running, they must be run as root to avoid the authentication
+	requirement.
+
+	Note that a few other microbenchmarks are in tests (like gem_gtt_speed).
+
+tests/
+	This is a set of automated tests to run against the DRM to validate
+	changes.  Hopefully this can cover the relevant cases we need to
+	worry about, including backwards compatibility.
+
+	Run this tests with "make test" as root from this directory. Note that
+	no other drm clients (X server) may run.
+
+	"make test" only runs a default of test usefull for regression testing.
+	Other tests not run are:
+	- tests that might hang the gpu, see HANG in Makefile.am
+	- gem_stress, a stress test suite. Look at the source for all the
+	  various options.
+	- testdisplay is only run in the default mode. testdisplay has tons of
+	  options to test different kms functionality, again read the source of
+	  the details.
+
+	The more comfortable way to run tests is with piglit. First grab piglit
+	from
+
+	git://anongit.freedesktop.org/piglit
+
+	and build it (no need to install anything). Then we need to link up the
+	i-g-t sources with piglit
+
+	piglit-sources $ cd bin
+	piglit-sources/bin $ ln $i-g-t-sources igt -s
+
+	The tests in the i-g-t sources need to have been built already. Then we
+	can run the testcases with (as usual as root, no other drm clients
+	running):
+
+	piglit-sources # ./piglit-run.py tests/igt.tests <results-file>
+
+	The testlist is built at runtime, so no need to update anything in
+	piglit when adding new tests. See
+
+	piglit-sources $ ./piglit-run.py -h
+
+	for some useful options.
+
+lib/
+	Common helper functions and headers used by the other tools.
+
+man/
+	Manpages, unfortunately rather incomplete.
+
+tools/
+	This is a collection of debugging tools that had previously been
+	built with the 2D driver but not shipped.  Some distros were hacking
+	up the 2D build to ship them.  Instead, here's a separate package for
+	people debugging the driver.
+
+	These tools generally must be run as root, safe for the ones that just
+	decode dumps.
+
+tools/quick_dump
+	Quick dumper is a python tool built with SWIG bindings to
+	important libraries exported by the rest of the tool suite. The tool
+	itself is quite straight forward, and should also be a useful example
+	for others wishing to write python based i915 tools.
+
+	Note to package maintainers: It is not recommended to package
+	this directory, as the tool is not yet designed for wide usage. If the
+	package is installed via "make install" the users will have to set
+	their python library path appropriately. Use --disable-dumper
+
+debugger/
+	This tool is to be used to do shader debugging. It acts like a
+	debug server accepting connections from debug clients such as
+	mesa. The connections is made with unix domain sockets, and at some
+	point it would be nice if this directory contained a library for
+	initiating connections with debug clients..
+
+	The debugger must be run as root: "sudo debugger/eudb"
